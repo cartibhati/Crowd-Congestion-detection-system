@@ -1,7 +1,7 @@
 # Task 131 - Crowd Congestion Detection System Configuration
 
 # Paths (Relative to the project root directory)
-video_path: "Test_Videos/sample.mp4"
+video_path: "Test_Videos/dense_crowd.mp4"
 output_dir: "Outputs"
 model_path: "Models/yolov8n.pt"
 

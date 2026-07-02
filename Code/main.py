@@ -5,6 +5,18 @@ import time
 import argparse
 import datetime
 import json
+import cv2
+import torch
+
+# PyTorch 2.6+ compatibility patch to prevent weights_only security errors
+try:
+    _orig_load = torch.load
+    def _patched_load(*args, **kwargs):
+        kwargs['weights_only'] = False
+        return _orig_load(*args, **kwargs)
+    torch.load = _patched_load
+except Exception:
+    pass
 
 # Add current directory to path to enable importing local modules in Code/
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -129,6 +141,12 @@ def main():
         snapshot_interval = heatmap_cfg.get("snapshot_interval_seconds", 5.0)
         
         for frame, frame_idx, fps, frame_count, width, height in frame_generator:
+            # Resize frame to 768x432 for robust spatial zone boundaries (config is calibrated for 768x432)
+            target_width, target_height = 768, 432
+            if frame.shape[1] != target_width or frame.shape[0] != target_height:
+                frame = cv2.resize(frame, (target_width, target_height))
+                width, height = target_width, target_height
+
             # Initialize OutputWriter on first frame
             if writer is None:
                 writer = OutputWriter(
