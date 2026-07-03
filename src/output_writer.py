@@ -26,9 +26,12 @@ class OutputWriter:
         os.makedirs(os.path.dirname(os.path.abspath(self.video_output_path)), exist_ok=True)
         os.makedirs(os.path.dirname(os.path.abspath(self.csv_output_path)), exist_ok=True)
         
-        # Initialize video writer
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        # Initialize video writer (try avc1/H.264 first, fallback to mp4v)
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')
         self.out_writer = cv2.VideoWriter(self.video_output_path, fourcc, self.fps, (self.width, self.height))
+        if not self.out_writer.isOpened():
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            self.out_writer = cv2.VideoWriter(self.video_output_path, fourcc, self.fps, (self.width, self.height))
         
         # Initialize CSV log file with header
         with open(self.csv_output_path, 'w') as f:

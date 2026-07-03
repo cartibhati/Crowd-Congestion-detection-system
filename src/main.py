@@ -28,6 +28,7 @@ from zone_manager import ZoneManager
 from alert_manager import AlertManager
 from heatmap_generator import HeatmapGenerator
 from output_writer import OutputWriter
+from chart_generator import generate_telemetry_charts
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Task 131: Crowd Congestion Detection System")
@@ -85,9 +86,9 @@ def main():
     video_name_only, _ = os.path.splitext(video_filename)
     
     annotated_video_path = os.path.join(output_dir, f"{video_name_only}_annotated.mp4")
-    telemetry_csv_path = os.path.join(output_dir, "crowd_density.csv")
-    alerts_log_path = os.path.join(output_dir, "alerts.log")
-    heatmap_final_path = os.path.join(output_dir, "heatmap_final.png")
+    telemetry_csv_path = os.path.join(output_dir, f"{video_name_only}_crowd_density.csv")
+    alerts_log_path = os.path.join(output_dir, f"{video_name_only}_alerts.log")
+    heatmap_final_path = os.path.join(output_dir, f"{video_name_only}_heatmap_final.png")
     
     print(f"\n⚡ Initializing Crowd Congestion Detection System (Task 131)")
     print(f" - Input Video:        {video_path}")
@@ -186,7 +187,7 @@ def main():
             # Save periodic heatmap snapshots
             if snapshot_interval > 0 and frame_idx > 0 and int(frame_idx) % int(fps * snapshot_interval) == 0:
                 snap_num = int(frame_idx // (fps * snapshot_interval))
-                snapshot_name = f"heatmap_snapshot_{snap_num:03d}.png"
+                snapshot_name = f"{video_name_only}_heatmap_snapshot_{snap_num:03d}.png"
                 heatmap_gen.save_snapshot(snapshot_name, frame)
                 
             processed_frames += 1
@@ -203,7 +204,7 @@ def main():
             sys.exit(1)
             
         # Save final heatmap
-        heatmap_gen.save_snapshot("heatmap_final.png")
+        heatmap_gen.save_snapshot(f"{video_name_only}_heatmap_final.png")
         
         # Save summary statistics JSON
         elapsed_time = time.time() - start_time
@@ -220,9 +221,12 @@ def main():
             "congestion_history": zone_manager.congestion_history
         }
         
-        summary_path = os.path.join(output_dir, "summary_stats.json")
+        summary_path = os.path.join(output_dir, f"{video_name_only}_summary_stats.json")
         with open(summary_path, 'w') as f:
             json.dump(summary, f, indent=4)
+            
+        # Generate telemetry trend charts
+        generate_telemetry_charts(telemetry_csv_path, output_dir, video_name_only)
             
         print("\n" + "="*60)
         print("🎉 PIPELINE COMPLETED SUCCESSFULLY")
